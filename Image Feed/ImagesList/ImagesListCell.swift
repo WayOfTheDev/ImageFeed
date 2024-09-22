@@ -18,7 +18,6 @@ final class ImagesListCell: UITableViewCell {
         gradientView.isHidden = false
         gradientView.alpha = 1
         contentView.alpha = 1
-        //gradientView.backgroundColor = .black.withAlphaComponent(0.1)
         gradientView.backgroundColor = .clear
     }
         
