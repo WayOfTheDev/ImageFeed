@@ -1,10 +1,3 @@
-//
-//  SingleImageViewController.swift
-//  Image Feed
-//
-//  Created by D. K. on 14.09.24.
-//
-
 import UIKit
 
 final class SingleImageViewController: UIViewController, UIScrollViewDelegate {

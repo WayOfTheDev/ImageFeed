@@ -1,25 +1,3 @@
-//
-//  ProfileViewController.swift
-//  Image Feed
-//
-//  Created by D. K. on 11.09.24.
-//
-
-//import UIKit
-//
-//final class ProfileViewController: UIViewController {
-//    @IBOutlet private var avatarImageView: UIImageView!
-//    @IBOutlet private var nameLabel: UILabel!
-//    @IBOutlet private var loginNameLabel: UILabel!
-//    @IBOutlet private var descriptionLabel: UILabel!
-//
-//    @IBOutlet private var logoutButton: UIButton!
-//
-//    @IBAction private func didTapLogoutButton() {
-//    }
-//}
-
-
 import UIKit
 
 final class ProfileViewController: UIViewController {
@@ -31,7 +9,6 @@ final class ProfileViewController: UIViewController {
         imageView.image = UIImage(named: "avatar")
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
-        imageView.layer.cornerRadius = 35
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -68,7 +45,7 @@ final class ProfileViewController: UIViewController {
         let button = UIButton()
         let image = UIImage(systemName: "ipad.and.arrow.forward")!
         button.setImage(image, for: .normal)
-        button.tintColor = UIColor(red: 1, green: 0.23, blue: 0.19, alpha: 1)
+        button.tintColor = UIColor(red: 245/255, green: 107/255, blue: 108/255, alpha: 1)
         button.addTarget(nil, action: #selector(didTapLogoutButton), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
@@ -95,24 +72,29 @@ final class ProfileViewController: UIViewController {
         // avatarImageView Constraints
         NSLayoutConstraint.activate([
             avatarImageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-            avatarImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 32),
+            avatarImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 52),
             avatarImageView.widthAnchor.constraint(equalToConstant: 70),
             avatarImageView.heightAnchor.constraint(equalToConstant: 70)
         ])
+        
+        avatarImageView.layer.cornerRadius = avatarImageView.frame.width / 2
 
         // logoutButton Constraints
         NSLayoutConstraint.activate([
+            logoutButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 65),
             logoutButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-            logoutButton.centerYAnchor.constraint(equalTo: avatarImageView.centerYAnchor),
             logoutButton.widthAnchor.constraint(equalToConstant: 44),
             logoutButton.heightAnchor.constraint(equalToConstant: 44)
         ])
+        
+        logoutButton.contentEdgeInsets = UIEdgeInsets(top: 11, left: 16, bottom: 11, right: 8)
 
         // nameLabel Constraints
         NSLayoutConstraint.activate([
             nameLabel.leadingAnchor.constraint(equalTo: avatarImageView.leadingAnchor),
             nameLabel.topAnchor.constraint(equalTo: avatarImageView.bottomAnchor, constant: 8)
         ])
+
 
         // loginNameLabel Constraints
         NSLayoutConstraint.activate([
