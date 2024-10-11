@@ -4,7 +4,7 @@ final class SplashViewController: UIViewController {
     
     // MARK: - Properties
     private let oauth2TokenStorage = OAuth2TokenStorage()
-    private let oauth2Service = OAuth2Service()
+    private let oauth2Service = OAuth2Service.shared
     private let showAuthenticationScreenSegueIdentifier = "authScreen"
     
     // MARK: - Lifecycle Methods
@@ -15,12 +15,10 @@ final class SplashViewController: UIViewController {
     
     // MARK: - Private Methods
     private func checkAuthenticationStatus() {
-        oauth2TokenStorage.token = nil  // для теста с очисткой токена
+        // oauth2TokenStorage.token = nil  // оставляю для ситуаций, когда потребуется полный перезапуск приложения
         if oauth2TokenStorage.token != nil {
-            print("Токен найден, переход на главный интерфейс")
             switchToMainInterface()
         } else {
-            print("Токен не найден, запуск авторизации")
             performSegue(withIdentifier: showAuthenticationScreenSegueIdentifier, sender: nil)
         }
     }

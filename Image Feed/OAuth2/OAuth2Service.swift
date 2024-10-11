@@ -8,9 +8,15 @@ extension Notification.Name {
 // MARK: - OAuth2Service
 final class OAuth2Service {
     
+    // MARK: - Singleton
+    static let shared = OAuth2Service()
+    
+    // MARK: - Private Initializer
+    private init() {}
+    
     // MARK: - Private Methods
     private func makeTokenRequest(with code: String) -> URLRequest? {
-        guard var urlComponents = URLComponents(string: "https://unsplash.com/oauth/token") else {
+        guard var urlComponents = URLComponents(string: Constants.unsplashTokenURL) else {
             print("Ошибка: Неверный URL токена")
             return nil
         }
@@ -35,31 +41,26 @@ final class OAuth2Service {
     
     // MARK: - Public Methods
     func fetchOAuthToken(with code: String, completion: @escaping (Result<String, Error>) -> Void) {
-        print("OAuth2Service: fetchOAuthToken вызван с кодом: \(code)")
-        print("OAuth2Service: Начало запроса токена с кодом: \(code)")
         guard let request = makeTokenRequest(with: code) else {
             print("OAuth2Service: Ошибка: Неверный запрос токена")
             completion(.failure(OAuthError.invalidRequest))
             return
         }
         
-        print("OAuth2Service: URL запроса токена: \(request.url?.absoluteString ?? "nil")")
-        
         let task = URLSession.shared.data(for: request) { result in
-            print("OAuth2Service: Получен ответ на запрос токена")
             switch result {
             case .success(let data):
                 do {
-                    let response = try JSONDecoder().decode(OAuthTokenResponseBody.self, from: data)
+                    let decoder = JSONDecoder()
+                    decoder.keyDecodingStrategy = .convertFromSnakeCase
+                    let response = try decoder.decode(OAuthTokenResponseBody.self, from: data)
                     let token = response.accessToken
                     OAuth2TokenStorage.shared.token = token
-                    print("OAuth2Service: Токен успешно получен и сохранен: \(token)")
                     
                     NotificationCenter.default.post(name: .didAuthenticate, object: nil)
                     
                     completion(.success(token))
                 } catch {
-                    print("OAuth2Service: Ошибка декодирования токена: \(error)")
                     completion(.failure(error))
                 }
             case .failure(let error):
@@ -69,7 +70,6 @@ final class OAuth2Service {
         }
         
         task.resume()
-        print("OAuth2Service: Запрос токена отправлен")
     }
     
     // MARK: - OAuthError Enum

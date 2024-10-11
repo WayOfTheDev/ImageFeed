@@ -1,11 +1,6 @@
 import UIKit
 @preconcurrency import WebKit
 
-// MARK: - WebViewConstants
-enum WebViewConstants {
-    static let unsplashAuthorizeURLString = "https://unsplash.com/oauth/authorize"
-}
-
 // MARK: - WebViewViewControllerDelegate Protocol
 protocol WebViewViewControllerDelegate: AnyObject {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String)
@@ -25,13 +20,6 @@ final class WebViewViewController: UIViewController {
     // MARK: - Lifecycle Methods
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        print("WebViewViewController: viewDidLoad вызван")
-        if delegate == nil {
-            print("WebViewViewController: Делегат не установлен в viewDidLoad")
-        } else {
-            print("WebViewViewController: Делегат установлен в viewDidLoad")
-        }
         
         loadAuthView()
         webView.navigationDelegate = self
@@ -83,12 +71,7 @@ final class WebViewViewController: UIViewController {
         }
         
         let request = URLRequest(url: url)
-//        let websiteDataTypes: Set<String> = [WKWebsiteDataTypeCookies, WKWebsiteDataTypeDiskCache, WKWebsiteDataTypeMemoryCache]
-//        let date = Date(timeIntervalSince1970: 0)
-//        WKWebsiteDataStore.default().removeData(ofTypes: websiteDataTypes, modifiedSince: date) {
-//            print("Cookies and cache cleared")
-//            self.webView.load(request)
-//        }
+        
         clearWebViewData {
             self.webView.load(request)
         }
@@ -141,15 +124,12 @@ extension WebViewViewController: WKNavigationDelegate {
         decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
     ) {
         if let code = code(from: navigationAction) {
-            print("WebViewViewController: Код авторизации получен: \(code)")
             if let delegate = delegate {
-                print("WebViewViewController: Вызов делегата")
                 delegate.webViewViewController(self, didAuthenticateWithCode: code)
             } else {
                 print("WebViewViewController: Делегат не установлен")
             }
             decisionHandler(.cancel)
-            print("WebViewViewController: WebView не закрываем, ожидаем завершения процесса аутентификации")
             return
         } else {
             decisionHandler(.allow)
@@ -160,7 +140,7 @@ extension WebViewViewController: WKNavigationDelegate {
         if
             let url = navigationAction.request.url,
             let urlComponents = URLComponents(string: url.absoluteString),
-            urlComponents.path == "/oauth/authorize/native",
+            urlComponents.path == WebViewConstants.unsplashAuthPath,
             let items = urlComponents.queryItems,
             let codeItem = items.first(where: { $0.name == "code" })
         {

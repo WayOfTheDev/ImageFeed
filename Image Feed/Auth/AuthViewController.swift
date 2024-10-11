@@ -14,17 +14,15 @@ protocol AuthViewControllerDelegate: AnyObject {
 final class AuthViewController: UIViewController, WebViewViewControllerDelegate {
     
     // MARK: - Outlets
-    @IBOutlet weak var loginButton: UIButton!
+    @IBOutlet private weak var loginButton: UIButton!
     
     // MARK: - Properties
     weak var delegate: AuthViewControllerDelegate?
-    private let oauth2Service = OAuth2Service()
+    private let oauth2Service = OAuth2Service.shared
     
     // MARK: - Lifecycle Methods
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        print("AuthViewController: viewDidLoad вызван")
         
         loginButton.layer.cornerRadius = 16
         loginButton.clipsToBounds = true
@@ -34,15 +32,10 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
     
     // MARK: - Navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        print("AuthViewController: prepare(for:sender:) вызван")
-        print("Тип segue.destination: \(type(of: segue.destination))")
-        print("Полное имя класса segue.destination: \(NSStringFromClass(type(of: segue.destination)))")
-        
         if segue.identifier == SegueIdentifiers.showWebView {
             guard let webViewViewController = segue.destination as? WebViewViewController else {
                 fatalError("Не удалось подготовить \(SegueIdentifiers.showWebView): не является WebViewViewController")
             }
-            print("AuthViewController: Устанавливаем делегат для WebViewViewController")
             webViewViewController.delegate = self
         } else {
             super.prepare(for: segue, sender: sender)
@@ -51,21 +44,14 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
 
     // MARK: - WebViewViewControllerDelegate
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
-        print("AuthViewController: Метод webViewViewController вызван с кодом: \(code)")
-        print("AuthViewController: Получен код авторизации: \(code)")
         
         oauth2Service.fetchOAuthToken(with: code) { [weak self] result in
-            print("Получен результат запроса токена")
             DispatchQueue.main.async {
                 switch result {
-                case .success(let token):
-                    print("Авторизация успешна, получен токен: \(token)")
+                case .success(_):
                     self?.showAlert(title: "Так держать!", message: "Вы успешно авторизовались!")
-                    
                     self?.switchToMainInterface()
-                    
                 case .failure(let error):
-                    print("Ошибка при получении токена: \(error)")
                     self?.showAlert(title: "Ошибка", message: "Не удалось завершить авторизацию: \(error.localizedDescription)")
                 }
             }
@@ -92,7 +78,6 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
     }
     
     private func showAlert(title: String, message: String) {
-        print("Показ алерта: \(title) - \(message)")
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true) {
