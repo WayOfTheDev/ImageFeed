@@ -15,7 +15,7 @@ final class SplashViewController: UIViewController {
     
     // MARK: - Private Methods
     private func checkAuthenticationStatus() {
-        // oauth2TokenStorage.token = nil  // оставляю для ситуаций, когда потребуется полный перезапуск приложения
+        oauth2TokenStorage.token = nil  // оставляю для ситуаций, когда потребуется полный перезапуск приложения
         if oauth2TokenStorage.token != nil {
             switchToMainInterface()
         } else {
@@ -56,7 +56,7 @@ extension SplashViewController {
 // MARK: - AuthViewControllerDelegate Extension
 extension SplashViewController: AuthViewControllerDelegate {
     func authViewController(_ vc: AuthViewController, didAuthenticateWithCode code: String) {
-        oauth2Service.fetchOAuthToken(with: code) { [weak self] result in
+        oauth2Service.fetchOAuthToken(code) { [weak self] result in
             guard let self = self else { return }
             switch result {
             case .success:

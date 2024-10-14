@@ -1,8 +1,8 @@
 import Foundation
 
-// MARK: - Notification.Name Extension
-extension Notification.Name {
-    static let didAuthenticate = Notification.Name("didAuthenticate")
+// MARK: - OAuth2ServiceError Enum
+enum OAuth2ServiceError: Error {
+    case invalidRequest
 }
 
 // MARK: - OAuth2Service
@@ -11,11 +11,65 @@ final class OAuth2Service {
     // MARK: - Singleton
     static let shared = OAuth2Service()
     
-    // MARK: - Private Initializer
-    private init() {}
+    // MARK: - Properties
+    private let urlSession = URLSession.shared
+    private var task: URLSessionTask?
+    private var lastCode: String?
+    
+    // MARK: - Public Methods
+    func fetchOAuthToken(_ code: String, completion: @escaping (Result<String, Error>) -> Void) {
+        assert(Thread.isMainThread)
+        
+        if task != nil {
+            if lastCode != code {
+                task?.cancel()
+            } else {
+                completion(.failure(OAuth2ServiceError.invalidRequest))
+                return
+            }
+        }
+        
+        lastCode = code
+        
+        guard let request = makeOAuthTokenRequest(code: code) else {
+            completion(.failure(OAuth2ServiceError.invalidRequest))
+            return
+        }
+        
+        task = urlSession.dataTask(with: request) { [weak self] data, response, error in
+            DispatchQueue.main.async {
+                self?.task = nil
+                self?.lastCode = nil
+                
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                
+                guard let data = data else {
+                    completion(.failure(OAuth2ServiceError.invalidRequest))
+                    return
+                }
+                
+                do {
+                    let token = try self?.parseToken(from: data)
+                    if let token = token {
+                        OAuth2TokenStorage.shared.token = token
+                        completion(.success(token))
+                    } else {
+                        completion(.failure(OAuth2ServiceError.invalidRequest))
+                    }
+                } catch {
+                    completion(.failure(error))
+                }
+            }
+        }
+        
+        task?.resume()
+    }
     
     // MARK: - Private Methods
-    private func makeTokenRequest(with code: String) -> URLRequest? {
+    private func makeOAuthTokenRequest(code: String) -> URLRequest? {
         guard var urlComponents = URLComponents(string: Constants.unsplashTokenURL) else {
             print("Ошибка: Неверный URL токена")
             return nil
@@ -39,43 +93,15 @@ final class OAuth2Service {
         return request
     }
     
-    // MARK: - Public Methods
-    func fetchOAuthToken(with code: String, completion: @escaping (Result<String, Error>) -> Void) {
-        guard let request = makeTokenRequest(with: code) else {
-            print("OAuth2Service: Ошибка: Неверный запрос токена")
-            completion(.failure(OAuthError.invalidRequest))
-            return
+    private func parseToken(from data: Data) throws -> String {
+        struct OAuthTokenResponseBody: Decodable {
+            let accessToken: String
         }
         
-        let task = URLSession.shared.data(for: request) { result in
-            switch result {
-            case .success(let data):
-                do {
-                    let decoder = JSONDecoder()
-                    decoder.keyDecodingStrategy = .convertFromSnakeCase
-                    let response = try decoder.decode(OAuthTokenResponseBody.self, from: data)
-                    let token = response.accessToken
-                    OAuth2TokenStorage.shared.token = token
-                    
-                    NotificationCenter.default.post(name: .didAuthenticate, object: nil)
-                    
-                    completion(.success(token))
-                } catch {
-                    completion(.failure(error))
-                }
-            case .failure(let error):
-                print("OAuth2Service: Ошибка сети при получении токена: \(error)")
-                completion(.failure(error))
-            }
-        }
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let response = try decoder.decode(OAuthTokenResponseBody.self, from: data)
         
-        task.resume()
-    }
-    
-    // MARK: - OAuthError Enum
-    enum OAuthError: Error {
-        case invalidRequest
-        case invalidResponse
-        case noData
+        return response.accessToken
     }
 }

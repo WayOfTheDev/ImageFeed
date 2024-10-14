@@ -44,9 +44,13 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
 
     // MARK: - WebViewViewControllerDelegate
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
+        UIBlockingProgressHUD.show()
         
-        oauth2Service.fetchOAuthToken(with: code) { [weak self] result in
+        oauth2Service.fetchOAuthToken(code) { [weak self] result in
             DispatchQueue.main.async {
+                
+                UIBlockingProgressHUD.dismiss()
+                
                 switch result {
                 case .success(_):
                     self?.showAlert(title: "Так держать!", message: "Вы успешно авторизовались!")
