@@ -1,4 +1,5 @@
 import UIKit
+import Kingfisher
 
 final class ProfileViewController: UIViewController {
 
@@ -11,7 +12,7 @@ final class ProfileViewController: UIViewController {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
-    
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         avatarImageView.layer.cornerRadius = avatarImageView.frame.size.width / 2
@@ -54,7 +55,6 @@ final class ProfileViewController: UIViewController {
 
     // MARK: - Properties
     private var profileImageObserver: NSObjectProtocol?
-    private var imageTask: URLSessionTask?
 
     // MARK: - View Lifecycle
     override func viewDidLoad() {
@@ -87,7 +87,6 @@ final class ProfileViewController: UIViewController {
         if let profileImageObserver = profileImageObserver {
             NotificationCenter.default.removeObserver(profileImageObserver)
         }
-        imageTask?.cancel()
     }
 
     // MARK: - Update Profile
@@ -123,29 +122,30 @@ final class ProfileViewController: UIViewController {
         }
     }
 
-    // MARK: - Load Image
+    // MARK: - Load Image с использованием Kingfisher
     private func loadImage(from urlString: String) {
-        imageTask?.cancel()
-        
         guard let url = URL(string: urlString) else {
             print("Invalid URL: \(urlString)")
+            self.avatarImageView.image = UIImage(systemName: "person.crop.circle.badge.exclamationmark")
             return
         }
 
-        imageTask = URLSession.shared.imageTask(for: url) { [weak self] result in
-            switch result {
-            case .success(let image):
-                DispatchQueue.main.async {
-                    self?.avatarImageView.image = image
-                }
-            case .failure(let error):
-                DispatchQueue.main.async {
-                    print("Failed to load image: \(error.localizedDescription)")
-                    self?.avatarImageView.image = UIImage(systemName: "person.crop.circle.badge.exclamationmark")
+        avatarImageView.kf.indicatorType = .activity
+        avatarImageView.kf.setImage(
+            with: url,
+            placeholder: UIImage(systemName: "person.crop.circle.fill"),
+            options: [
+                .transition(.fade(0.3)),
+                .cacheOriginalImage
+            ]) { result in
+                switch result {
+                case .success(_):
+                    break
+                case .failure(let error):
+                    print("Failed to load image with Kingfisher: \(error.localizedDescription)")
+                    self.avatarImageView.image = UIImage(systemName: "person.crop.circle.badge.exclamationmark")
                 }
             }
-        }
-        imageTask?.resume()
     }
 
     // MARK: - Constraints Setup
@@ -156,8 +156,6 @@ final class ProfileViewController: UIViewController {
             avatarImageView.widthAnchor.constraint(equalToConstant: 70),
             avatarImageView.heightAnchor.constraint(equalToConstant: 70)
         ])
-        
-        avatarImageView.layer.cornerRadius = avatarImageView.frame.width / 2
 
         NSLayoutConstraint.activate([
             logoutButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 65),
