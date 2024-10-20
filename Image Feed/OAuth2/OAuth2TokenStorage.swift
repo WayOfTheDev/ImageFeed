@@ -9,10 +9,16 @@ final class OAuth2TokenStorage {
     // MARK: - Properties
     var token: String? {
         get {
-            return storage.string(forKey: "OAuthToken")
+            let token = storage.string(forKey: "OAuthToken")
+            return token
         }
         set {
             storage.set(newValue, forKey: "OAuthToken")
+            if let token = newValue {
+                print("Token saved to storage: \(token)")
+            } else {
+                print("Token removed from storage")
+            }
         }
     }
 }

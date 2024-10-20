@@ -55,8 +55,8 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
                 case .success(_):
                     self?.showAlert(title: "Так держать!", message: "Вы успешно авторизовались!")
                     self?.switchToMainInterface()
-                case .failure(let error):
-                    self?.showAlert(title: "Ошибка", message: "Не удалось завершить авторизацию: \(error.localizedDescription)")
+                case .failure(_):
+                    self?.showAlert(title: "Что-то пошло не так(", message: "Не удалось войти в систему")
                 }
             }
         }
@@ -84,9 +84,7 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
     private func showAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true) {
-            print("Алерт показан")
-        }
+        present(alert, animated: true)
     }
 
     func webViewViewControllerDidCancel(_ vc: WebViewViewController) {
