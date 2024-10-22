@@ -6,9 +6,27 @@ final class SplashViewController: UIViewController {
     private let oauth2TokenStorage = OAuth2TokenStorage()
     private let oauth2Service = OAuth2Service.shared
     private let profileService = ProfileService.shared
-    private let showAuthenticationScreenSegueIdentifier = "authScreen"
+    
+    // MARK: - UI Elements
+    private let splashImageView: UIImageView = {
+        let imageView = UIImageView(image: UIImage(named: "splash_screen_logo"))
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
     
     // MARK: - Lifecycle Methods
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = UIColor(named: ".ypBlack")
+        
+        view.addSubview(splashImageView)
+        
+        NSLayoutConstraint.activate([
+            splashImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            splashImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+    }
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         checkAuthenticationStatus()
@@ -20,9 +38,7 @@ final class SplashViewController: UIViewController {
         if let token = oauth2TokenStorage.token {
             fetchProfile(token: token)
         } else {
-            DispatchQueue.main.async {
-                self.performSegue(withIdentifier: self.showAuthenticationScreenSegueIdentifier, sender: nil)
-            }
+            presentAuthViewController()
         }
     }
 
@@ -80,6 +96,25 @@ final class SplashViewController: UIViewController {
             UIView.transition(with: window, duration: 0.5, options: .transitionCrossDissolve, animations: {
                 window.rootViewController = tabBarController
             })
+        }
+    }
+    
+    private func presentAuthViewController() {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        guard let authVC = storyboard.instantiateViewController(withIdentifier: "AuthViewController") as? AuthViewController else {
+            return
+        }
+        authVC.delegate = self
+        authVC.modalPresentationStyle = .fullScreen
+        present(authVC, animated: true, completion: nil)
+    }
+}
+
+// MARK: - AuthViewControllerDelegate
+extension SplashViewController: AuthViewControllerDelegate {
+    func authViewController(_ vc: AuthViewController, didAuthenticateWithCode code: String) {
+        vc.dismiss(animated: true) {
+            self.fetchProfile(token: OAuth2TokenStorage.shared.token ?? "")
         }
     }
 }
