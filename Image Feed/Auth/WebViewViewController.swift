@@ -1,12 +1,6 @@
 import UIKit
 @preconcurrency import WebKit
 
-// MARK: - WebViewViewControllerDelegate Protocol
-protocol WebViewViewControllerDelegate: AnyObject {
-    func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String)
-    func webViewViewControllerDidCancel(_ vc: WebViewViewController)
-}
-
 // MARK: - WebViewViewController
 final class WebViewViewController: UIViewController {
     

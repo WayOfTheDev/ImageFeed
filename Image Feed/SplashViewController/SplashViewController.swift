@@ -8,7 +8,7 @@ final class SplashViewController: UIViewController {
     private let profileService = ProfileService.shared
     
     // MARK: - UI Elements
-    private let splashImageView: UIImageView = {
+    private lazy var splashImageView: UIImageView = {
         let imageView = UIImageView(image: UIImage(named: "splash_screen_logo"))
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView

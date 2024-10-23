@@ -1,41 +1,5 @@
 import Foundation
 
-// MARK: - ProfileResult
-struct ProfileResult: Codable {
-    let username: String
-    let name: String?
-    let bio: String?
-    let profileImage: ProfileImage?
-
-    enum CodingKeys: String, CodingKey {
-        case username, name, bio
-        case profileImage = "profile_image"
-    }
-    
-    struct ProfileImage: Codable {
-        let small: String?
-        let medium: String?
-        let large: String?
-    }
-}
-
-// MARK: - Profile
-struct Profile {
-    let username: String
-    let name: String
-    let loginName: String
-    let bio: String?
-    let profileImageURL: String?
-    
-    init(from result: ProfileResult) {
-        self.username = result.username
-        self.name = result.name ?? "No name"
-        self.loginName = "@\(result.username)"
-        self.bio = result.bio ?? "В процессе разработки"
-        self.profileImageURL = result.profileImage?.large
-    }
-}
-
 // MARK: - ProfileService
 final class ProfileService {
     

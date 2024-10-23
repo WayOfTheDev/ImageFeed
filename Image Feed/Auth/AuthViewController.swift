@@ -5,11 +5,6 @@ enum SegueIdentifiers {
     static let showWebView = "ShowWebView"
 }
 
-// MARK: - AuthViewControllerDelegate Protocol
-protocol AuthViewControllerDelegate: AnyObject {
-    func authViewController(_ vc: AuthViewController, didAuthenticateWithCode code: String)
-}
-
 // MARK: - AuthViewController
 final class AuthViewController: UIViewController, WebViewViewControllerDelegate {
     

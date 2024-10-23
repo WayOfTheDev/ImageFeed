@@ -4,7 +4,7 @@ import Kingfisher
 final class ProfileViewController: UIViewController {
 
     // MARK: - UI Elements
-    private let avatarImageView: UIImageView = {
+    private lazy var avatarImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: "person.crop.circle.fill")
         imageView.contentMode = .scaleAspectFill
@@ -18,7 +18,7 @@ final class ProfileViewController: UIViewController {
         avatarImageView.layer.cornerRadius = avatarImageView.frame.size.width / 2
     }
 
-    private let nameLabel: UILabel = {
+    private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 23, weight: .bold)
         label.textColor = .white
@@ -26,7 +26,7 @@ final class ProfileViewController: UIViewController {
         return label
     }()
 
-    private let loginNameLabel: UILabel = {
+    private lazy var loginNameLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 13)
         label.textColor = UIColor(red: 0.6, green: 0.6, blue: 0.67, alpha: 1)
@@ -34,7 +34,7 @@ final class ProfileViewController: UIViewController {
         return label
     }()
 
-    private let descriptionLabel: UILabel = {
+    private lazy var descriptionLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 13)
         label.textColor = .white
@@ -43,7 +43,7 @@ final class ProfileViewController: UIViewController {
         return label
     }()
 
-    private let logoutButton: UIButton = {
+    private lazy var logoutButton: UIButton = {
         let button = UIButton()
         let image = UIImage(systemName: "ipad.and.arrow.forward")!
         button.setImage(image, for: .normal)
