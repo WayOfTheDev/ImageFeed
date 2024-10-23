@@ -10,6 +10,9 @@ final class ProfileService {
     private var task: URLSessionTask?
     private(set) var profile: Profile?
     
+    // MARK: - Initializer
+    private init() {}
+    
     // MARK: - Public Methods
     func fetchProfile(_ token: String, completion: @escaping (Result<Profile, Error>) -> Void) {
         guard let baseURL = Constants.defaultBaseURL else {

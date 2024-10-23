@@ -12,7 +12,10 @@ final class ProfileImageService {
     private(set) var avatarURL: String?
 
     static let didChangeNotification = Notification.Name("ProfileImageProviderDidChange")
-
+    
+    // MARK: - Initializer
+    private init() {}
+    
     // MARK: - Public Methods
     func fetchProfileImageURL(username: String, _ completion: @escaping (Result<String, Error>) -> Void) {
         guard let token = OAuth2TokenStorage.shared.token else {
