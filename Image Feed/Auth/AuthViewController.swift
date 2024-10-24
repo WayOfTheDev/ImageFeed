@@ -5,11 +5,6 @@ enum SegueIdentifiers {
     static let showWebView = "ShowWebView"
 }
 
-// MARK: - AuthViewControllerDelegate Protocol
-protocol AuthViewControllerDelegate: AnyObject {
-    func authViewController(_ vc: AuthViewController, didAuthenticateWithCode code: String)
-}
-
 // MARK: - AuthViewController
 final class AuthViewController: UIViewController, WebViewViewControllerDelegate {
     
@@ -44,15 +39,19 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
 
     // MARK: - WebViewViewControllerDelegate
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
+        UIBlockingProgressHUD.show()
         
-        oauth2Service.fetchOAuthToken(with: code) { [weak self] result in
+        oauth2Service.fetchOAuthToken(code) { [weak self] result in
             DispatchQueue.main.async {
+                
+                UIBlockingProgressHUD.dismiss()
+                
                 switch result {
                 case .success(_):
                     self?.showAlert(title: "Так держать!", message: "Вы успешно авторизовались!")
                     self?.switchToMainInterface()
-                case .failure(let error):
-                    self?.showAlert(title: "Ошибка", message: "Не удалось завершить авторизацию: \(error.localizedDescription)")
+                case .failure(_):
+                    self?.showAlert(title: "Что-то пошло не так(", message: "Не удалось войти в систему")
                 }
             }
         }
@@ -80,9 +79,7 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
     private func showAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true) {
-            print("Алерт показан")
-        }
+        present(alert, animated: true)
     }
 
     func webViewViewControllerDidCancel(_ vc: WebViewViewController) {

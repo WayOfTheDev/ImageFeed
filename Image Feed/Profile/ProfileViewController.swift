@@ -1,39 +1,41 @@
 import UIKit
+import Kingfisher
 
 final class ProfileViewController: UIViewController {
 
     // MARK: - UI Elements
-
-    private let avatarImageView: UIImageView = {
+    private lazy var avatarImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(named: "avatar")
+        imageView.image = UIImage(systemName: "person.crop.circle.fill")
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
 
-    private let nameLabel: UILabel = {
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        avatarImageView.layer.cornerRadius = avatarImageView.frame.size.width / 2
+    }
+
+    private lazy var nameLabel: UILabel = {
         let label = UILabel()
-        label.text = "Екатерина Новикова"
         label.font = UIFont.systemFont(ofSize: 23, weight: .bold)
         label.textColor = .white
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
 
-    private let loginNameLabel: UILabel = {
+    private lazy var loginNameLabel: UILabel = {
         let label = UILabel()
-        label.text = "@ekaterina_nov"
         label.font = UIFont.systemFont(ofSize: 13)
         label.textColor = UIColor(red: 0.6, green: 0.6, blue: 0.67, alpha: 1)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
 
-    private let descriptionLabel: UILabel = {
+    private lazy var descriptionLabel: UILabel = {
         let label = UILabel()
-        label.text = "Hello, world!"
         label.font = UIFont.systemFont(ofSize: 13)
         label.textColor = .white
         label.numberOfLines = 0
@@ -41,7 +43,7 @@ final class ProfileViewController: UIViewController {
         return label
     }()
 
-    private let logoutButton: UIButton = {
+    private lazy var logoutButton: UIButton = {
         let button = UIButton()
         let image = UIImage(systemName: "ipad.and.arrow.forward")!
         button.setImage(image, for: .normal)
@@ -51,8 +53,10 @@ final class ProfileViewController: UIViewController {
         return button
     }()
 
-    // MARK: - View Life Cycle
+    // MARK: - Properties
+    private var profileImageObserver: NSObjectProtocol?
 
+    // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(red: 0.1, green: 0.11, blue: 0.13, alpha: 1)
@@ -64,45 +68,112 @@ final class ProfileViewController: UIViewController {
         view.addSubview(logoutButton)
 
         setupConstraints()
+        updateProfileDetails()
+
+        profileImageObserver = NotificationCenter.default.addObserver(
+            forName: ProfileImageService.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self = self else { return }
+            if let userInfo = notification.userInfo,
+               let avatarURL = userInfo["URL"] as? String {
+                self.loadImage(from: avatarURL)
+            }
+        }
+    }
+
+    deinit {
+        if let profileImageObserver = profileImageObserver {
+            NotificationCenter.default.removeObserver(profileImageObserver)
+        }
+    }
+
+    // MARK: - Update Profile
+    private func updateProfileDetails() {
+        guard let profile = ProfileService.shared.profile else {
+            return
+        }
+        
+        nameLabel.text = profile.name
+        loginNameLabel.text = profile.loginName
+        descriptionLabel.text = profile.bio
+
+        if let avatarURL = profile.profileImageURL {
+            loadImage(from: avatarURL)
+        } else {
+            loadAvatar(username: profile.username)
+        }
+    }
+
+    // MARK: - Load Avatar
+    private func loadAvatar(username: String) {
+        print("Loading avatar for username: \(username)")
+        ProfileImageService.shared.fetchProfileImageURL(username: username) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let avatarURL):
+                    print("Successfully retrieved avatar URL")
+                    self?.loadImage(from: avatarURL)
+                case .failure(let error):
+                    print("Failed to load avatar: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+
+    // MARK: - Load Image с использованием Kingfisher
+    private func loadImage(from urlString: String) {
+        guard let url = URL(string: urlString) else {
+            print("Invalid URL: \(urlString)")
+            self.avatarImageView.image = UIImage(systemName: "person.crop.circle.badge.exclamationmark")
+            return
+        }
+
+        avatarImageView.kf.indicatorType = .activity
+        avatarImageView.kf.setImage(
+            with: url,
+            placeholder: UIImage(systemName: "person.crop.circle.fill"),
+            options: [
+                .transition(.fade(0.3)),
+                .cacheOriginalImage
+            ]) { result in
+                switch result {
+                case .success(_):
+                    break
+                case .failure(let error):
+                    print("Failed to load image with Kingfisher: \(error.localizedDescription)")
+                    self.avatarImageView.image = UIImage(systemName: "person.crop.circle.badge.exclamationmark")
+                }
+            }
     }
 
     // MARK: - Constraints Setup
-
     private func setupConstraints() {
-        // avatarImageView Constraints
         NSLayoutConstraint.activate([
             avatarImageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             avatarImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 52),
             avatarImageView.widthAnchor.constraint(equalToConstant: 70),
             avatarImageView.heightAnchor.constraint(equalToConstant: 70)
         ])
-        
-        avatarImageView.layer.cornerRadius = avatarImageView.frame.width / 2
 
-        // logoutButton Constraints
         NSLayoutConstraint.activate([
             logoutButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 65),
             logoutButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
             logoutButton.widthAnchor.constraint(equalToConstant: 44),
             logoutButton.heightAnchor.constraint(equalToConstant: 44)
         ])
-        
-        logoutButton.contentEdgeInsets = UIEdgeInsets(top: 11, left: 16, bottom: 11, right: 8)
 
-        // nameLabel Constraints
         NSLayoutConstraint.activate([
             nameLabel.leadingAnchor.constraint(equalTo: avatarImageView.leadingAnchor),
             nameLabel.topAnchor.constraint(equalTo: avatarImageView.bottomAnchor, constant: 8)
         ])
 
-
-        // loginNameLabel Constraints
         NSLayoutConstraint.activate([
             loginNameLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             loginNameLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 8)
         ])
 
-        // descriptionLabel Constraints
         NSLayoutConstraint.activate([
             descriptionLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             descriptionLabel.topAnchor.constraint(equalTo: loginNameLabel.bottomAnchor, constant: 8),
@@ -111,7 +182,6 @@ final class ProfileViewController: UIViewController {
     }
 
     // MARK: - Actions
-
     @objc
     private func didTapLogoutButton() {
         // Реализация функционала выхода из аккаунта
