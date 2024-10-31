@@ -43,12 +43,13 @@ final class ProfileViewController: UIViewController {
         return label
     }()
 
+    // MARK: - Logout Button
     private lazy var logoutButton: UIButton = {
         let button = UIButton()
         let image = UIImage(systemName: "ipad.and.arrow.forward")!
         button.setImage(image, for: .normal)
         button.tintColor = UIColor(red: 245/255, green: 107/255, blue: 108/255, alpha: 1)
-        button.addTarget(nil, action: #selector(didTapLogoutButton), for: .touchUpInside)
+        button.addTarget(self, action: #selector(didTapLogoutButton), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -56,7 +57,7 @@ final class ProfileViewController: UIViewController {
     // MARK: - Properties
     private var profileImageObserver: NSObjectProtocol?
 
-    // MARK: - View Lifecycle
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(red: 0.1, green: 0.11, blue: 0.13, alpha: 1)
@@ -122,7 +123,7 @@ final class ProfileViewController: UIViewController {
         }
     }
 
-    // MARK: - Load Image с использованием Kingfisher
+    // MARK: - Load Image
     private func loadImage(from urlString: String) {
         guard let url = URL(string: urlString) else {
             print("Invalid URL: \(urlString)")
@@ -184,6 +185,21 @@ final class ProfileViewController: UIViewController {
     // MARK: - Actions
     @objc
     private func didTapLogoutButton() {
-        // Реализация функционала выхода из аккаунта
+        UIBlockingProgressHUD.show()
+        
+        ProfileLogoutService.shared.logout { [weak self] in
+            guard let self = self else { return }
+            
+            UIBlockingProgressHUD.dismiss()
+            
+            guard let window = UIApplication.shared.windows.first else {
+                assertionFailure("Ошибка конфигурации окна")
+                return
+            }
+
+            let splashVC = SplashViewController()
+            window.rootViewController = splashVC
+            UIView.transition(with: window, duration: 0.5, options: .transitionFlipFromLeft, animations: nil, completion: nil)
+        }
     }
 }

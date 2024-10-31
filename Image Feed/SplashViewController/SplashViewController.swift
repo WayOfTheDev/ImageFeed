@@ -17,8 +17,17 @@ final class SplashViewController: UIViewController {
     // MARK: - Lifecycle Methods
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(named: ".ypBlack")
-        
+        setupUI()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        checkAuthenticationStatus()
+    }
+    
+    // MARK: - Setup UI
+    private func setupUI() {
+        view.backgroundColor = .ypBlack
         view.addSubview(splashImageView)
         
         NSLayoutConstraint.activate([
@@ -27,12 +36,7 @@ final class SplashViewController: UIViewController {
         ])
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        checkAuthenticationStatus()
-    }
-    
-    // MARK: - Private Methods
+    // MARK: - Authentication
     private func checkAuthenticationStatus() {
         // oauth2TokenStorage.token = nil  // оставляю для ситуаций, когда потребуется полный перезапуск приложения
         if let token = oauth2TokenStorage.token {
@@ -50,21 +54,19 @@ final class SplashViewController: UIViewController {
         profileService.fetchProfile(token) { [weak self] result in
             DispatchQueue.main.async {
                 UIBlockingProgressHUD.dismiss()
-
                 guard let self = self else { return }
-
+                
                 switch result {
                 case .success(let profile):
                     self.fetchProfileImage(username: profile.username)
                     self.switchToMainInterface()
-
                 case .failure(let error):
                     self.showErrorAlert(with: error.localizedDescription)
                 }
             }
         }
     }
-
+    
     private func fetchProfileImage(username: String) {
         ProfileImageService.shared.fetchProfileImageURL(username: username) { result in
             switch result {
@@ -75,7 +77,7 @@ final class SplashViewController: UIViewController {
             }
         }
     }
-
+    
     private func showErrorAlert(with message: String) {
         let alertController = UIAlertController(title: "Ошибка входа", message: message, preferredStyle: .alert)
         let okAction = UIAlertAction(title: "OK", style: .default)
@@ -90,8 +92,7 @@ final class SplashViewController: UIViewController {
                 return
             }
             
-            let tabBarController = UIStoryboard(name: "Main", bundle: .main)
-                .instantiateViewController(withIdentifier: "TabBarViewController")
+            let tabBarController = TabBarController()
             
             UIView.transition(with: window, duration: 0.5, options: .transitionCrossDissolve, animations: {
                 window.rootViewController = tabBarController
@@ -100,10 +101,7 @@ final class SplashViewController: UIViewController {
     }
     
     private func presentAuthViewController() {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        guard let authVC = storyboard.instantiateViewController(withIdentifier: "AuthViewController") as? AuthViewController else {
-            return
-        }
+        let authVC = AuthViewController()
         authVC.delegate = self
         authVC.modalPresentationStyle = .fullScreen
         present(authVC, animated: true, completion: nil)
