@@ -30,6 +30,7 @@ final class ImagesListService {
         
         guard let baseURL = Constants.defaultBaseURL else {
             isFetching = false
+            print("ImagesListService.fetchPhotosNextPage: NetworkError.invalidBaseURL")
             return
         }
         
@@ -42,6 +43,7 @@ final class ImagesListService {
         
         guard let finalURL = urlComponents?.url else {
             isFetching = false
+            print("ImagesListService.fetchPhotosNextPage: NetworkError.invalidURLComponents - page: \(pageToFetch), perPage: \(perPage)")
             return
         }
         
@@ -64,7 +66,14 @@ final class ImagesListService {
                 }
             case .failure(let error):
                 DispatchQueue.main.async {
-                    print("ImagesListService.fetchPhotosNextPage: Ошибка при загрузке фотографий - \(error.localizedDescription)")
+                    let errorType: String
+                    if let networkError = error as? NetworkError {
+                        errorType = "\(networkError)"
+                    } else {
+                        errorType = String(describing: type(of: error))
+                    }
+                    
+                    print("ImagesListService.fetchPhotosNextPage: \(errorType) - URL: \(finalURL.absoluteString), Error: \(error.localizedDescription)")
                 }
             }
             DispatchQueue.main.async {
@@ -80,6 +89,7 @@ final class ImagesListService {
         let httpMethod = isLike ? "POST" : "DELETE"
         
         guard let baseURL = Constants.defaultBaseURL else {
+            print("ImagesListService.changeLike: NetworkError.invalidBaseURL - photoId: \(photoId), isLike: \(isLike)")
             completion(.failure(NetworkError.invalidImageData))
             return
         }
@@ -90,6 +100,7 @@ final class ImagesListService {
         if let token = OAuth2TokenStorage.shared.token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         } else {
+            print("ImagesListService.changeLike: NetworkError.noAuthToken - photoId: \(photoId), isLike: \(isLike)")
             completion(.failure(NetworkError.urlSessionError))
             return
         }
@@ -106,12 +117,20 @@ final class ImagesListService {
                         NotificationCenter.default.post(name: ImagesListService.didChangeNotification, object: self)
                         completion(.success(()))
                     } else {
+                        print("ImagesListService.changeLike: NetworkError.photoNotFound - photoId: \(photoId)")
                         completion(.failure(NetworkError.invalidImageData))
                     }
                 }
             case .failure(let error):
                 DispatchQueue.main.async {
-                    print("ImagesListService.changeLike: Ошибка при изменении лайка - \(error.localizedDescription)")
+                    let errorType: String
+                    if let networkError = error as? NetworkError {
+                        errorType = "\(networkError)"
+                    } else {
+                        errorType = String(describing: type(of: error))
+                    }
+                    
+                    print("ImagesListService.changeLike: \(errorType) - photoId: \(photoId), isLike: \(isLike), Error: \(error.localizedDescription)")
                     completion(.failure(error))
                 }
             }

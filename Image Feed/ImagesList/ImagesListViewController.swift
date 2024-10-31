@@ -19,13 +19,6 @@ final class ImagesListViewController: UIViewController {
         return tableView
     }()
     
-    private lazy var dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .long
-        formatter.timeStyle = .none
-        return formatter
-    }()
-    
     var photos: [Photo] = []
     
     // MARK: - Lifecycle
@@ -132,13 +125,12 @@ extension ImagesListViewController: UITableViewDataSource {
 extension ImagesListViewController {
     func configureCell(for cell: ImagesListCell, with photo: Photo, at indexPath: IndexPath) {
         if let createdAt = photo.createdAt {
-            cell.dateLabel.text = dateFormatter.string(from: createdAt)
+            cell.dateLabel.text = DateFormatter.sharedMedium.string(from: createdAt)
         } else {
             cell.dateLabel.text = "Unknown date"
         }
 
-        let likeImageName = photo.isLiked ? "like_button_on" : "like_button_off"
-        cell.likeButton.setImage(UIImage(named: likeImageName), for: .normal)
+        cell.setIsLiked(photo.isLiked)
 
         if let thumbURL = URL(string: photo.thumbImageURL) {
             cell.cellImage.kf.indicatorType = .activity
@@ -181,9 +173,8 @@ extension ImagesListViewController {
             case .success():
                 if let index = self?.photos.firstIndex(where: { $0.id == photo.id }) {
                     let updatedPhoto = self?.photos[index]
-                    let likeImageName = updatedPhoto?.isLiked ?? false ? "like_button_on" : "like_button_off"
                     if let cell = self?.tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? ImagesListCell {
-                        cell.likeButton.setImage(UIImage(named: likeImageName), for: .normal)
+                        cell.setIsLiked(updatedPhoto?.isLiked ?? false)
                     }
                 }
             case .failure(_):

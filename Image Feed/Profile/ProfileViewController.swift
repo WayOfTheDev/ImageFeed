@@ -185,21 +185,37 @@ final class ProfileViewController: UIViewController {
     // MARK: - Actions
     @objc
     private func didTapLogoutButton() {
-        UIBlockingProgressHUD.show()
+        let alertController = UIAlertController(
+            title: "Пока, пока!",
+            message: "Уверены, что хотите выйти?",
+            preferredStyle: .alert
+        )
         
-        ProfileLogoutService.shared.logout { [weak self] in
+        let cancelAction = UIAlertAction(title: "Нет", style: .cancel, handler: nil)
+        let logoutAction = UIAlertAction(title: "Да", style: .destructive) { [weak self] _ in
             guard let self = self else { return }
             
-            UIBlockingProgressHUD.dismiss()
+            UIBlockingProgressHUD.show()
             
-            guard let window = UIApplication.shared.windows.first else {
-                assertionFailure("Ошибка конфигурации окна")
-                return
-            }
+            ProfileLogoutService.shared.logout {
+                DispatchQueue.main.async {
+                    UIBlockingProgressHUD.dismiss()
+                    
+                    guard let window = UIApplication.shared.windows.first else {
+                        assertionFailure("Ошибка конфигурации окна")
+                        return
+                    }
 
-            let splashVC = SplashViewController()
-            window.rootViewController = splashVC
-            UIView.transition(with: window, duration: 0.5, options: .transitionFlipFromLeft, animations: nil, completion: nil)
+                    let splashVC = SplashViewController()
+                    window.rootViewController = splashVC
+                    UIView.transition(with: window, duration: 0.5, options: .transitionFlipFromLeft, animations: nil, completion: nil)
+                }
+            }
         }
+        
+        alertController.addAction(cancelAction)
+        alertController.addAction(logoutAction)
+        
+        present(alertController, animated: true, completion: nil)
     }
 }

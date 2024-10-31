@@ -124,4 +124,10 @@ final class ImagesListCell: UITableViewCell {
     @objc private func didTapLikeButton() {
         onLikeButtonTapped?()
     }
+    
+    // MARK: - Set Is Liked
+    func setIsLiked(_ isLiked: Bool) {
+        let imageName = isLiked ? "like_button_on" : "like_button_off"
+        likeButton.setImage(UIImage(named: imageName), for: .normal)
+    }
 }
