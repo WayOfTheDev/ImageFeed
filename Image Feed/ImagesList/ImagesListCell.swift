@@ -37,6 +37,9 @@ final class ImagesListCell: UITableViewCell {
     
     private let gradientLayer = CAGradientLayer()
     
+    // MARK: - Aspect Ratio Constraint
+    private var aspectRatioConstraint: NSLayoutConstraint?
+    
     // MARK: - Parameters like button tapped
     var onLikeButtonTapped: (() -> Void)?
     
@@ -113,6 +116,11 @@ final class ImagesListCell: UITableViewCell {
         likeButton.setImage(UIImage(named: "like_button_off"), for: .normal)
         dateLabel.text = nil
         onLikeButtonTapped = nil
+        
+        if let aspectRatioConstraint = aspectRatioConstraint {
+            cellImage.removeConstraint(aspectRatioConstraint)
+            self.aspectRatioConstraint = nil
+        }
     }
     
     // MARK: - Setup Like Button
@@ -129,5 +137,14 @@ final class ImagesListCell: UITableViewCell {
     func setIsLiked(_ isLiked: Bool) {
         let imageName = isLiked ? "like_button_on" : "like_button_off"
         likeButton.setImage(UIImage(named: imageName), for: .normal)
+    }
+    
+    // MARK: - Configure Aspect Ratio
+    func configureAspectRatio(with size: CGSize) {
+        let aspectRatio = size.width / size.height
+        
+        aspectRatioConstraint = cellImage.heightAnchor.constraint(equalTo: cellImage.widthAnchor, multiplier: 1 / aspectRatio)
+        aspectRatioConstraint?.priority = UILayoutPriority(999)
+        aspectRatioConstraint?.isActive = true
     }
 }

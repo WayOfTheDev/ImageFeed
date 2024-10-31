@@ -14,8 +14,7 @@ struct Photo {
         self.id = result.id
         self.size = CGSize(width: result.width, height: result.height)
         
-        let formatter = ISO8601DateFormatter()
-        self.createdAt = formatter.date(from: result.createdAt)
+        self.createdAt = ISO8601DateFormatter.shared.date(from: result.createdAt)
         
         self.welcomeDescription = result.description
         self.thumbImageURL = result.urls.thumb

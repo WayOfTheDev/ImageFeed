@@ -4,14 +4,12 @@ import ProgressHUD
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
-    // MARK: UISceneSession Lifecycle
+    // MARK: - UISceneSession Lifecycle
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        ProgressHUD.animationType = .activityIndicator
-        ProgressHUD.colorHUD = .black
-        ProgressHUD.colorAnimation = .lightGray
+        setupProgressHUD()
         return true
     }
     
@@ -32,5 +30,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         _ application: UIApplication,
         didDiscardSceneSessions sceneSessions: Set<UISceneSession>
     ) {
+    }
+    
+    // MARK: - Setup ProgressHUD
+    private func setupProgressHUD() {
+        ProgressHUD.animationType = .activityIndicator
+        ProgressHUD.colorHUD = .black
+        ProgressHUD.colorAnimation = .lightGray
     }
 }

@@ -127,10 +127,11 @@ extension ImagesListViewController {
         if let createdAt = photo.createdAt {
             cell.dateLabel.text = DateFormatter.sharedMedium.string(from: createdAt)
         } else {
-            cell.dateLabel.text = "Unknown date"
+            cell.dateLabel.text = ""
         }
 
         cell.setIsLiked(photo.isLiked)
+        cell.configureAspectRatio(with: photo.size)
 
         if let thumbURL = URL(string: photo.thumbImageURL) {
             cell.cellImage.kf.indicatorType = .activity

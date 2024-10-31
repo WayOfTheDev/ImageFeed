@@ -9,3 +9,11 @@ extension DateFormatter {
         return formatter
     }()
 }
+
+extension ISO8601DateFormatter {
+    // MARK: - Singleton
+    static let shared: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        return formatter
+    }()
+}

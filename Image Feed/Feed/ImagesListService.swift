@@ -28,30 +28,10 @@ final class ImagesListService {
         isFetching = true
         let pageToFetch = currentPage
         
-        guard let baseURL = Constants.defaultBaseURL else {
+        guard let request = createRequest(page: pageToFetch, perPage: perPage) else {
             isFetching = false
-            print("ImagesListService.fetchPhotosNextPage: NetworkError.invalidBaseURL")
+            print("ImagesListService.fetchPhotosNextPage: NetworkError.invalidRequest")
             return
-        }
-        
-        let url = baseURL.appendingPathComponent("photos")
-        var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false)
-        urlComponents?.queryItems = [
-            URLQueryItem(name: "page", value: "\(pageToFetch)"),
-            URLQueryItem(name: "per_page", value: "\(perPage)")
-        ]
-        
-        guard let finalURL = urlComponents?.url else {
-            isFetching = false
-            print("ImagesListService.fetchPhotosNextPage: NetworkError.invalidURLComponents - page: \(pageToFetch), perPage: \(perPage)")
-            return
-        }
-        
-        var request = URLRequest(url: finalURL)
-        request.httpMethod = "GET"
-        
-        if let token = OAuth2TokenStorage.shared.token {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
         
         let task = urlSession.objectTask(for: request) { [weak self] (result: Result<[PhotoResult], Error>) in
@@ -73,7 +53,7 @@ final class ImagesListService {
                         errorType = String(describing: type(of: error))
                     }
                     
-                    print("ImagesListService.fetchPhotosNextPage: \(errorType) - URL: \(finalURL.absoluteString), Error: \(error.localizedDescription)")
+                    print("ImagesListService.fetchPhotosNextPage: \(errorType) - Error: \(error.localizedDescription)")
                 }
             }
             DispatchQueue.main.async {
@@ -137,6 +117,35 @@ final class ImagesListService {
         }
         
         task.resume()
+    }
+    
+    // MARK: - Private Methods
+    private func createRequest(page: Int, perPage: Int) -> URLRequest? {
+        guard let baseURL = Constants.defaultBaseURL else {
+            print("ImagesListService.createRequest: NetworkError.invalidBaseURL")
+            return nil
+        }
+        
+        let url = baseURL.appendingPathComponent("photos")
+        var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        urlComponents?.queryItems = [
+            URLQueryItem(name: "page", value: "\(page)"),
+            URLQueryItem(name: "per_page", value: "\(perPage)")
+        ]
+        
+        guard let finalURL = urlComponents?.url else {
+            print("ImagesListService.createRequest: NetworkError.invalidURLComponents - page: \(page), perPage: \(perPage)")
+            return nil
+        }
+        
+        var request = URLRequest(url: finalURL)
+        request.httpMethod = "GET"
+        
+        if let token = OAuth2TokenStorage.shared.token {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        return request
     }
 }
 
