@@ -10,7 +10,7 @@ final class ProfileImageService {
     // MARK: - Properties
     private var task: URLSessionTask?
     private(set) var avatarURL: String?
-
+    
     static let didChangeNotification = Notification.Name("ProfileImageProviderDidChange")
     
     // MARK: - Initializer
@@ -69,5 +69,10 @@ final class ProfileImageService {
         }
 
         task?.resume()
+    }
+    
+    // MARK: - Reset Method
+    func reset() {
+        avatarURL = nil
     }
 }
