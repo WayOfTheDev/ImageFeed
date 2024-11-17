@@ -1,8 +1,10 @@
 import UIKit
 import Kingfisher
 
-final class ProfileViewController: UIViewController {
-
+final class ProfileViewController: UIViewController & ProfileViewControllerProtocol {
+    // MARK: - Properties
+    var presenter: ProfilePresenterProtocol?
+    
     // MARK: - UI Elements
     private lazy var avatarImageView: UIImageView = {
         let imageView = UIImageView()
@@ -12,38 +14,35 @@ final class ProfileViewController: UIViewController {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
-
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        avatarImageView.layer.cornerRadius = avatarImageView.frame.size.width / 2
-    }
-
+    
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 23, weight: .bold)
         label.textColor = .white
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.accessibilityIdentifier = "ProfileNameLabel"
         return label
     }()
-
+    
     private lazy var loginNameLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 13)
         label.textColor = UIColor(red: 0.6, green: 0.6, blue: 0.67, alpha: 1)
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.accessibilityIdentifier = "ProfileLoginNameLabel"
         return label
     }()
-
+    
     private lazy var descriptionLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 13)
         label.textColor = .white
         label.numberOfLines = 0
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.accessibilityIdentifier = "ProfileBioLabel"
         return label
     }()
-
-    // MARK: - Logout Button
+    
     private lazy var logoutButton: UIButton = {
         let button = UIButton()
         let image = UIImage(systemName: "ipad.and.arrow.forward")!
@@ -51,86 +50,35 @@ final class ProfileViewController: UIViewController {
         button.tintColor = UIColor(red: 245/255, green: 107/255, blue: 108/255, alpha: 1)
         button.addTarget(self, action: #selector(didTapLogoutButton), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityIdentifier = "LogoutButton"
         return button
     }()
-
-    // MARK: - Properties
-    private var profileImageObserver: NSObjectProtocol?
-
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(red: 0.1, green: 0.11, blue: 0.13, alpha: 1)
-
-        view.addSubview(avatarImageView)
-        view.addSubview(nameLabel)
-        view.addSubview(loginNameLabel)
-        view.addSubview(descriptionLabel)
-        view.addSubview(logoutButton)
-
-        setupConstraints()
-        updateProfileDetails()
-
-        profileImageObserver = NotificationCenter.default.addObserver(
-            forName: ProfileImageService.didChangeNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            guard let self = self else { return }
-            if let userInfo = notification.userInfo,
-               let avatarURL = userInfo["URL"] as? String {
-                self.loadImage(from: avatarURL)
-            }
-        }
+        setupUI()
+        presenter?.viewDidLoad()
     }
-
-    deinit {
-        if let profileImageObserver = profileImageObserver {
-            NotificationCenter.default.removeObserver(profileImageObserver)
-        }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        avatarImageView.layer.cornerRadius = avatarImageView.frame.size.width / 2
     }
-
-    // MARK: - Update Profile
-    private func updateProfileDetails() {
-        guard let profile = ProfileService.shared.profile else {
+    
+    // MARK: - ProfileViewControllerProtocol
+    func configure(_ presenter: ProfilePresenterProtocol) {
+        self.presenter = presenter
+        presenter.view = self
+    }
+    
+    func updateAvatar(with url: String?) {
+        guard let urlString = url,
+              let url = URL(string: urlString) else {
+            avatarImageView.image = UIImage(systemName: "person.crop.circle.badge.exclamationmark")
             return
         }
         
-        nameLabel.text = profile.name
-        loginNameLabel.text = profile.loginName
-        descriptionLabel.text = profile.bio
-
-        if let avatarURL = profile.profileImageURL {
-            loadImage(from: avatarURL)
-        } else {
-            loadAvatar(username: profile.username)
-        }
-    }
-
-    // MARK: - Load Avatar
-    private func loadAvatar(username: String) {
-        print("Loading avatar for username: \(username)")
-        ProfileImageService.shared.fetchProfileImageURL(username: username) { [weak self] result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let avatarURL):
-                    print("Successfully retrieved avatar URL")
-                    self?.loadImage(from: avatarURL)
-                case .failure(let error):
-                    print("Failed to load avatar: \(error.localizedDescription)")
-                }
-            }
-        }
-    }
-
-    // MARK: - Load Image
-    private func loadImage(from urlString: String) {
-        guard let url = URL(string: urlString) else {
-            print("Invalid URL: \(urlString)")
-            self.avatarImageView.image = UIImage(systemName: "person.crop.circle.badge.exclamationmark")
-            return
-        }
-
         avatarImageView.kf.indicatorType = .activity
         avatarImageView.kf.setImage(
             with: url,
@@ -142,14 +90,35 @@ final class ProfileViewController: UIViewController {
                 switch result {
                 case .success(_):
                     break
-                case .failure(let error):
-                    print("Failed to load image with Kingfisher: \(error.localizedDescription)")
+                case .failure:
                     self.avatarImageView.image = UIImage(systemName: "person.crop.circle.badge.exclamationmark")
                 }
             }
     }
-
-    // MARK: - Constraints Setup
+    
+    func updateProfileDetails(name: String, loginName: String, bio: String) {
+        nameLabel.text = name
+        loginNameLabel.text = loginName
+        descriptionLabel.text = bio
+    }
+    
+    func showLoadingError() {
+        avatarImageView.image = UIImage(systemName: "person.crop.circle.badge.exclamationmark")
+    }
+    
+    // MARK: - Private Methods
+    private func setupUI() {
+        view.backgroundColor = UIColor(red: 0.1, green: 0.11, blue: 0.13, alpha: 1)
+        
+        view.addSubview(avatarImageView)
+        view.addSubview(nameLabel)
+        view.addSubview(loginNameLabel)
+        view.addSubview(descriptionLabel)
+        view.addSubview(logoutButton)
+        
+        setupConstraints()
+    }
+    
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             avatarImageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
@@ -157,65 +126,47 @@ final class ProfileViewController: UIViewController {
             avatarImageView.widthAnchor.constraint(equalToConstant: 70),
             avatarImageView.heightAnchor.constraint(equalToConstant: 70)
         ])
-
+        
         NSLayoutConstraint.activate([
             logoutButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 65),
             logoutButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
             logoutButton.widthAnchor.constraint(equalToConstant: 44),
             logoutButton.heightAnchor.constraint(equalToConstant: 44)
         ])
-
+        
         NSLayoutConstraint.activate([
             nameLabel.leadingAnchor.constraint(equalTo: avatarImageView.leadingAnchor),
             nameLabel.topAnchor.constraint(equalTo: avatarImageView.bottomAnchor, constant: 8)
         ])
-
+        
         NSLayoutConstraint.activate([
             loginNameLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             loginNameLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 8)
         ])
-
+        
         NSLayoutConstraint.activate([
             descriptionLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             descriptionLabel.topAnchor.constraint(equalTo: loginNameLabel.bottomAnchor, constant: 8),
             descriptionLabel.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16)
         ])
     }
-
-    // MARK: - Actions
+    
     @objc
-    private func didTapLogoutButton() {
+    func didTapLogoutButton() {
         let alertController = UIAlertController(
             title: "Пока, пока!",
             message: "Уверены, что хотите выйти?",
             preferredStyle: .alert
         )
         
-        let cancelAction = UIAlertAction(title: "Нет", style: .cancel, handler: nil)
+        let cancelAction = UIAlertAction(title: "Нет", style: .cancel)
         let logoutAction = UIAlertAction(title: "Да", style: .destructive) { [weak self] _ in
-            guard let self = self else { return }
-            
-            UIBlockingProgressHUD.show()
-            
-            ProfileLogoutService.shared.logout {
-                DispatchQueue.main.async {
-                    UIBlockingProgressHUD.dismiss()
-                    
-                    guard let window = UIApplication.shared.windows.first else {
-                        assertionFailure("Ошибка конфигурации окна")
-                        return
-                    }
-
-                    let splashVC = SplashViewController()
-                    window.rootViewController = splashVC
-                    UIView.transition(with: window, duration: 0.5, options: .transitionFlipFromLeft, animations: nil, completion: nil)
-                }
-            }
+            self?.presenter?.logout()
         }
         
         alertController.addAction(cancelAction)
         alertController.addAction(logoutAction)
         
-        present(alertController, animated: true, completion: nil)
+        present(alertController, animated: true)
     }
 }

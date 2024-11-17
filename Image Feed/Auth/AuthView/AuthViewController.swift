@@ -18,6 +18,7 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
         button.setTitleColor(.ypBlack, for: .normal)
         button.backgroundColor = .ypWhite
         button.addTarget(self, action: #selector(didTapLoginButton), for: .touchUpInside)
+        button.accessibilityIdentifier = "Authenticate"
         return button
     }()
     
@@ -47,13 +48,29 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
     
     private func showWebView() {
         let webViewVC = WebViewViewController()
+        let authHelper = AuthHelper()
+        let webViewPresenter = WebViewPresenter(authHelper: authHelper)
+        webViewVC.presenter = webViewPresenter
+        webViewPresenter.view = webViewVC
         webViewVC.delegate = self
+        
         webViewVC.modalPresentationStyle = .fullScreen
         present(webViewVC, animated: true, completion: nil)
     }
     
-    // MARK: - WebViewViewControllerDelegate
+    // MARK: - WebViewViewControllerDelegate Methods
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
+        vc.dismiss(animated: true) {
+            self.handleAuthentication(code: code)
+        }
+    }
+    
+    func webViewViewControllerDidCancel(_ vc: WebViewViewController) {
+        vc.dismiss(animated: true, completion: nil)
+    }
+    
+    // MARK: - Handle Authentication
+    private func handleAuthentication(code: String) {
         UIBlockingProgressHUD.show()
         oauth2Service.fetchOAuthToken(code) { [weak self] result in
             guard let self = self else { return }
@@ -69,10 +86,6 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
                 }
             }
         }
-    }
-    
-    func webViewViewControllerDidCancel(_ vc: WebViewViewController) {
-        dismiss(animated: true, completion: nil)
     }
     
     // MARK: - Helper Methods

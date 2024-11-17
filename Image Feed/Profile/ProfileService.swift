@@ -15,13 +15,9 @@ final class ProfileService {
     
     // MARK: - Public Methods
     func fetchProfile(_ token: String, completion: @escaping (Result<Profile, Error>) -> Void) {
-        guard let baseURL = Constants.defaultBaseURL else {
-            print("[ProfileService.fetchProfile]: Error - Invalid default base URL")
-            completion(.failure(NSError(domain: "Invalid base URL", code: 0, userInfo: nil)))
-            return
-        }
+        let configuration = AuthConfiguration.standard
         
-        let url = baseURL.appendingPathComponent("me")
+        let url = configuration.defaultBaseURL.appendingPathComponent("me")
         
         var request = URLRequest(url: url)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")

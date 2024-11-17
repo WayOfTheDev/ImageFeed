@@ -68,12 +68,7 @@ final class ImagesListService {
     func changeLike(photoId: String, isLike: Bool, _ completion: @escaping (Result<Void, Error>) -> Void) {
         let httpMethod = isLike ? "POST" : "DELETE"
         
-        guard let baseURL = Constants.defaultBaseURL else {
-            print("ImagesListService.changeLike: NetworkError.invalidBaseURL - photoId: \(photoId), isLike: \(isLike)")
-            completion(.failure(NetworkError.invalidImageData))
-            return
-        }
-        
+        let baseURL = AuthConfiguration.standard.defaultBaseURL
         let url = baseURL.appendingPathComponent("photos/\(photoId)/like")
         var request = URLRequest(url: url)
         request.httpMethod = httpMethod
@@ -94,11 +89,8 @@ final class ImagesListService {
                         var photo = self.photos[index]
                         photo.isLiked = likeResponse.photo.likedByUser
                         self.photos[index] = photo
-                        NotificationCenter.default.post(name: ImagesListService.didChangeNotification, object: self)
+                        NotificationCenter.default.post(name: ImagesListService.didChangeNotification, object: self, userInfo: ["photoId": photoId])
                         completion(.success(()))
-                    } else {
-                        print("ImagesListService.changeLike: NetworkError.photoNotFound - photoId: \(photoId)")
-                        completion(.failure(NetworkError.invalidImageData))
                     }
                 }
             case .failure(let error):
@@ -118,15 +110,13 @@ final class ImagesListService {
         
         task.resume()
     }
+
     
     // MARK: - Private Methods
     private func createRequest(page: Int, perPage: Int) -> URLRequest? {
-        guard let baseURL = Constants.defaultBaseURL else {
-            print("ImagesListService.createRequest: NetworkError.invalidBaseURL")
-            return nil
-        }
+        let configuration = AuthConfiguration.standard
         
-        let url = baseURL.appendingPathComponent("photos")
+        let url = configuration.defaultBaseURL.appendingPathComponent("photos")
         var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false)
         urlComponents?.queryItems = [
             URLQueryItem(name: "page", value: "\(page)"),
@@ -149,6 +139,7 @@ final class ImagesListService {
     }
 }
 
+// MARK: - Reset Method
 extension ImagesListService {
     func reset() {
         photos = []

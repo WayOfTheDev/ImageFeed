@@ -1,11 +1,12 @@
 import UIKit
 @preconcurrency import WebKit
 
-final class WebViewViewController: UIViewController, WKNavigationDelegate {
+// MARK: - WebViewViewController
+final class WebViewViewController: UIViewController & WebViewViewControllerProtocol {
     
     // MARK: - Properties
+    var presenter: WebViewPresenterProtocol?
     weak var delegate: WebViewViewControllerDelegate?
-    private var estimatedProgressObservation: NSKeyValueObservation?
     
     // MARK: - UI Elements
     private lazy var backButton: UIButton = {
@@ -30,6 +31,7 @@ final class WebViewViewController: UIViewController, WKNavigationDelegate {
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.translatesAutoresizingMaskIntoConstraints = false
         webView.navigationDelegate = self
+        webView.accessibilityIdentifier = "UnsplashWebView"
         return webView
     }()
     
@@ -37,7 +39,7 @@ final class WebViewViewController: UIViewController, WKNavigationDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        loadAuthView()
+        presenter?.viewDidLoad()
         observeProgress()
     }
     
@@ -73,88 +75,51 @@ final class WebViewViewController: UIViewController, WKNavigationDelegate {
         delegate?.webViewViewControllerDidCancel(self)
     }
     
-    // MARK: - Load Auth View
-    private func loadAuthView() {
-        guard var urlComponents = URLComponents(string: WebViewConstants.unsplashAuthorizeURLString) else {
-            showErrorAlert(message: "Ошибка: Невозможно создать URL-компоненты")
-            return
-        }
-        
-        urlComponents.queryItems = [
-            URLQueryItem(name: "client_id", value: Constants.accessKey),
-            URLQueryItem(name: "redirect_uri", value: Constants.redirectURI),
-            URLQueryItem(name: "response_type", value: "code"),
-            URLQueryItem(name: "scope", value: Constants.accessScope)
-        ]
-        
-        guard let url = urlComponents.url else {
-            showErrorAlert(message: "Ошибка: Невозможно создать URL из компонентов")
-            return
-        }
-        
-        let request = URLRequest(url: url)
-        clearWebViewData {
-            self.webView.load(request)
-        }
+    // MARK: - WebViewViewControllerProtocol Methods
+    func load(request: URLRequest) {
+        webView.load(request)
     }
     
-    // MARK: - Clear WebView Data
-    private func clearWebViewData(completion: @escaping () -> Void) {
-        let dataStore = WKWebsiteDataStore.default()
-        
-        dataStore.fetchDataRecords(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes()) { records in
-            dataStore.removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), for: records) {
-                print("WebView данные очищены")
-                completion()
-            }
-        }
+    func setProgressValue(_ newValue: Float) {
+        progressView.progress = newValue
+    }
+    
+    func setProgressHidden(_ isHidden: Bool) {
+        progressView.isHidden = isHidden
     }
     
     // MARK: - Observe Progress
     private func observeProgress() {
-        estimatedProgressObservation = webView.observe(\.estimatedProgress, options: [.new]) { [weak self] _, _ in
-            guard let self = self else { return }
-            self.updateProgress()
+        webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
+    }
+    
+    // MARK: - KVO for Progress
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if keyPath == #keyPath(WKWebView.estimatedProgress) {
+            presenter?.didUpdateProgressValue(webView.estimatedProgress)
+        } else {
+            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
         }
     }
     
-    private func updateProgress() {
-        progressView.progress = Float(webView.estimatedProgress)
-        progressView.isHidden = webView.estimatedProgress >= 1.0
+    deinit {
+        webView.removeObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress))
     }
+}
+
+// MARK: - WKNavigationDelegate
+extension WebViewViewController: WKNavigationDelegate {
     
-    // MARK: - Show Error Alert
-    private func showErrorAlert(message: String) {
-        let alert = UIAlertController(title: "Ошибка", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-        present(alert, animated: true, completion: nil)
-    }
-    
-    // MARK: - WKNavigationDelegate
     func webView(
         _ webView: WKWebView,
         decidePolicyFor navigationAction: WKNavigationAction,
         decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
     ) {
-        if let code = code(from: navigationAction) {
+        if let code = presenter?.code(from: navigationAction.request.url) {
             delegate?.webViewViewController(self, didAuthenticateWithCode: code)
             decisionHandler(.cancel)
             return
-        } else {
-            decisionHandler(.allow)
         }
-    }
-
-    private func code(from navigationAction: WKNavigationAction) -> String? {
-        guard
-            let url = navigationAction.request.url,
-            let urlComponents = URLComponents(string: url.absoluteString),
-            urlComponents.path == "/oauth/authorize/native",
-            let items = urlComponents.queryItems,
-            let codeItem = items.first(where: { $0.name == "code" })
-        else {
-            return nil
-        }
-        return codeItem.value
+        decisionHandler(.allow)
     }
 }
