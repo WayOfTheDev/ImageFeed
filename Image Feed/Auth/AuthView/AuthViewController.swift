@@ -7,6 +7,14 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
     weak var delegate: AuthViewControllerDelegate?
     private let oauth2Service = OAuth2Service.shared
     
+    // MARK: - Auth logo screen
+    private lazy var authLogoImageView: UIImageView = {
+        let authLogo = UIImageView()
+        authLogo.translatesAutoresizingMaskIntoConstraints = false
+        authLogo.image = UIImage(named: "auth_screen_logo")
+        return authLogo
+    }()
+    
     // MARK: - UI Elements
     private lazy var loginButton: UIButton = {
         let button = UIButton()
@@ -28,16 +36,22 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
         setupUI()
     }
     
-    // MARK: - Setup UI
+    // MARK: - Constraints
     private func setupUI() {
         view.backgroundColor = .ypBlack
+        view.addSubview(authLogoImageView)
         view.addSubview(loginButton)
         
         NSLayoutConstraint.activate([
             loginButton.heightAnchor.constraint(equalToConstant: 48),
             loginButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             loginButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-            loginButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -90)
+            loginButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -90),
+            
+            authLogoImageView.widthAnchor.constraint(equalToConstant: 60),
+            authLogoImageView.heightAnchor.constraint(equalToConstant: 60),
+            authLogoImageView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
+            authLogoImageView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor)
         ])
     }
     
@@ -60,8 +74,8 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
     
     // MARK: - WebViewViewControllerDelegate Methods
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
-        vc.dismiss(animated: true) {
-            self.handleAuthentication(code: code)
+        vc.dismiss(animated: true) { [weak self] in
+            self?.handleAuthentication(code: code)
         }
     }
     
