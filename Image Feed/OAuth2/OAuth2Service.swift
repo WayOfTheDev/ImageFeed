@@ -59,15 +59,16 @@ final class OAuth2Service {
     
     // MARK: - Private Methods
     private func makeOAuthTokenRequest(code: String) -> URLRequest? {
-        guard var urlComponents = URLComponents(string: Constants.unsplashTokenURL) else {
+        let configuration = AuthConfiguration.standard
+        guard var urlComponents = URLComponents(string: configuration.unsplashTokenURL) else {
             print("[OAuth2Service.makeOAuthTokenRequest]: Error - Invalid URL")
             return nil
         }
         
         urlComponents.queryItems = [
-            URLQueryItem(name: "client_id", value: Constants.accessKey),
-            URLQueryItem(name: "client_secret", value: Constants.secretKey),
-            URLQueryItem(name: "redirect_uri", value: Constants.redirectURI),
+            URLQueryItem(name: "client_id", value: configuration.accessKey),
+            URLQueryItem(name: "client_secret", value: configuration.secretKey),
+            URLQueryItem(name: "redirect_uri", value: configuration.redirectURI),
             URLQueryItem(name: "code", value: code),
             URLQueryItem(name: "grant_type", value: "authorization_code")
         ]

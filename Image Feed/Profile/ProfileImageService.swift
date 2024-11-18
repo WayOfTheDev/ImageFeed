@@ -24,7 +24,9 @@ final class ProfileImageService {
             return
         }
 
-        guard let profileImageGetURL = URL(string: "users/\(username)", relativeTo: Constants.defaultBaseURL) else {
+        let configuration = AuthConfiguration.standard
+        
+        guard let profileImageGetURL = URL(string: "users/\(username)", relativeTo: configuration.defaultBaseURL) else {
             print("[ProfileImageService.fetchProfileImageURL]: Error - Invalid URL")
             completion(.failure(NSError(domain: "Invalid URL", code: 0, userInfo: nil)))
             return

@@ -11,6 +11,10 @@ final class TabBarController: UITabBarController {
     // MARK: - setupViewControllers
     private func setupViewControllers() {
         let imagesListViewController = ImagesListViewController()
+        let imagesListPresenter = ImagesListPresenter()
+        
+        imagesListViewController.configure(imagesListPresenter)
+        
         let imagesIcon = UIImage(named: "tab_editorial_active")?.withRenderingMode(.alwaysTemplate)
         let imagesSelectedIcon = UIImage(named: "tab_editorial_selected")?.withRenderingMode(.alwaysTemplate)
         imagesListViewController.tabBarItem = UITabBarItem(
@@ -20,6 +24,9 @@ final class TabBarController: UITabBarController {
         )
         
         let profileViewController = ProfileViewController()
+        let profilePresenter = ProfilePresenter()
+        profileViewController.configure(profilePresenter)
+        
         let profileIcon = UIImage(named: "tab_profile_active")?.withRenderingMode(.alwaysTemplate)
         let profileSelectedIcon = UIImage(named: "tab_profile_selected")?.withRenderingMode(.alwaysTemplate)
         profileViewController.tabBarItem = UITabBarItem(

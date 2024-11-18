@@ -22,6 +22,7 @@ final class SingleImageViewController: UIViewController, UIScrollViewDelegate {
         scrollView.showsVerticalScrollIndicator = true
         scrollView.showsHorizontalScrollIndicator = true
         scrollView.isScrollEnabled = true
+        scrollView.accessibilityIdentifier = "SingleImageScrollView"
         return scrollView
     }()
     
@@ -31,6 +32,7 @@ final class SingleImageViewController: UIViewController, UIScrollViewDelegate {
         imageView.isUserInteractionEnabled = true
         imageView.contentMode = .scaleAspectFit
         imageView.backgroundColor = .ypBlack
+        imageView.accessibilityIdentifier = "SingleImageView"
         return imageView
     }()
     
@@ -41,6 +43,7 @@ final class SingleImageViewController: UIViewController, UIScrollViewDelegate {
         button.tintColor = .ypWhite
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(didTapBackButton), for: .touchUpInside)
+        button.accessibilityIdentifier = "BackButton"
         return button
     }()
     
@@ -50,6 +53,7 @@ final class SingleImageViewController: UIViewController, UIScrollViewDelegate {
         button.setImage(image, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(didTapShareButton), for: .touchUpInside)
+        button.accessibilityIdentifier = "ShareButton"
         return button
     }()
     

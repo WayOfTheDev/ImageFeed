@@ -14,9 +14,11 @@ final class ImagesListCell: UITableViewCell {
         return imageView
     }()
     
-    let likeButton: UIButton = {
+    private lazy var likeButton: UIButton = {
         let button = UIButton(type: .custom)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(didTapLikeButton), for: .touchUpInside)
+        button.accessibilityIdentifier = "LikeButton"
         return button
     }()
     
@@ -61,9 +63,9 @@ final class ImagesListCell: UITableViewCell {
         selectionStyle = .none
         
         contentView.addSubview(cellImage)
-        contentView.addSubview(likeButton)
         contentView.addSubview(dateLabel)
         contentView.addSubview(gradientView)
+        contentView.addSubview(likeButton)
         
         NSLayoutConstraint.activate([
             // cellImage constraints
@@ -137,6 +139,7 @@ final class ImagesListCell: UITableViewCell {
     func setIsLiked(_ isLiked: Bool) {
         let imageName = isLiked ? "like_button_on" : "like_button_off"
         likeButton.setImage(UIImage(named: imageName), for: .normal)
+        likeButton.accessibilityLabel = isLiked ? "like button on" : "like button off"
     }
     
     // MARK: - Configure Aspect Ratio
