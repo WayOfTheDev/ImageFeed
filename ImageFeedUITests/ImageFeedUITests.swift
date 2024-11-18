@@ -5,6 +5,7 @@ final class ImageFeedUITests: XCTestCase {
     
     override func setUpWithError() throws {
         continueAfterFailure = false
+        app.launchArguments.append("testMode")
         app.launch()
     }
     
@@ -28,8 +29,9 @@ final class ImageFeedUITests: XCTestCase {
         XCTAssertTrue(passwordTextField.waitForExistence(timeout: 10))
         
         passwordTextField.tap()
+        sleep(3)
         passwordTextField.typeText("your_password")
-        sleep(5)
+        sleep(3)
         
         webView.swipeUp()
         
@@ -60,23 +62,30 @@ final class ImageFeedUITests: XCTestCase {
         cellToLike.tap()
 
         sleep(2)
-            
-        let image = app.scrollViews.images.element(boundBy: 0)
-        image.pinch(withScale: 3, velocity: 1)
-        image.pinch(withScale: 0.5, velocity: -1)
+        
+        let scrollView = app.scrollViews["SingleImageScrollView"]
+        XCTAssertTrue(scrollView.waitForExistence(timeout: 5))
+        
+        let imageView = scrollView.images["SingleImageView"]
+        XCTAssertTrue(imageView.waitForExistence(timeout: 5))
+        
+        imageView.pinch(withScale: 3, velocity: 1)
+        sleep(1)
+        imageView.pinch(withScale: 0.5, velocity: -1)
         
         let backButton = app.buttons["BackButton"]
         XCTAssertTrue(backButton.waitForExistence(timeout: 5))
         backButton.tap()
     }
 
+
     // MARK: - Test Profile Interaction
     func testProfile() throws {
         sleep(3)
         app.tabBars.buttons.element(boundBy: 1).tap()
         
-        XCTAssertTrue(app.staticTexts["Name Lastname"].exists)
-        XCTAssertTrue(app.staticTexts["@username"].exists)
+        XCTAssertTrue(app.staticTexts["first and last name"].exists)
+        XCTAssertTrue(app.staticTexts["@your_nickname"].exists)
         
         let logoutButton = app.buttons["LogoutButton"]
         XCTAssertTrue(logoutButton.waitForExistence(timeout: 5))

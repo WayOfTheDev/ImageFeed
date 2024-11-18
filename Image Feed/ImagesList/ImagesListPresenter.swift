@@ -46,6 +46,10 @@ final class ImagesListPresenter: ImagesListPresenterProtocol {
     
     // MARK: - Pagination
     func checkPagination(index: Int) {
+        if ProcessInfo.processInfo.isUITest {
+            return
+        }
+        
         if index == photos.count - 1 {
             imagesListService.fetchPhotosNextPage()
         }

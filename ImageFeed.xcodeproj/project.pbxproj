@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4A0920FB2CEB1DAD00AFEE92 /* ProcessInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0920FA2CEB1DA600AFEE92 /* ProcessInfo.swift */; };
 		4A53E1222CB7B6B5003AC8E8 /* SplashViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A53E1212CB7B6B3003AC8E8 /* SplashViewController.swift */; };
 		4A53E15E2CBA8DE4003AC8E8 /* ProgressHUD in Frameworks */ = {isa = PBXBuildFile; productRef = 4A53E15D2CBA8DE4003AC8E8 /* ProgressHUD */; };
 		4A53E1602CBBC2AC003AC8E8 /* UIBlockingProgressHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A53E15F2CBBC2AA003AC8E8 /* UIBlockingProgressHUD.swift */; };
@@ -76,6 +77,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4A0920FA2CEB1DA600AFEE92 /* ProcessInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessInfo.swift; sourceTree = "<group>"; };
 		4A53E1212CB7B6B3003AC8E8 /* SplashViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewController.swift; sourceTree = "<group>"; };
 		4A53E15F2CBBC2AA003AC8E8 /* UIBlockingProgressHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIBlockingProgressHUD.swift; sourceTree = "<group>"; };
 		4A53E1AF2CBD03AE003AC8E8 /* ProfileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileService.swift; sourceTree = "<group>"; };
@@ -288,6 +290,7 @@
 		7D9CFA5A28DDF66900D971A7 /* ImagesList */ = {
 			isa = PBXGroup;
 			children = (
+				4A0920FA2CEB1DA600AFEE92 /* ProcessInfo.swift */,
 				4AC2B7EC2CE6AAD2004E5591 /* ImagesListPresenter.swift */,
 				4AC2B7EA2CE6AAB3004E5591 /* ImagesListPresenterProtocol.swift */,
 				4AC2B7E82CE6AAA3004E5591 /* ImagesListCellDelegate.swift */,
@@ -522,6 +525,7 @@
 				4AC2B7ED2CE6AAD3004E5591 /* ImagesListPresenter.swift in Sources */,
 				4AC7053F2CCB788A00BD13A5 /* PhotoResult.swift in Sources */,
 				4AC2B7E92CE6AAA4004E5591 /* ImagesListCellDelegate.swift in Sources */,
+				4A0920FB2CEB1DAD00AFEE92 /* ProcessInfo.swift in Sources */,
 				7D3DFB1528DDF696005A13F3 /* ImagesListCell.swift in Sources */,
 				4AC705412CCB78CB00BD13A5 /* UrlsResult.swift in Sources */,
 				4AC704EE2CC8B78600BD13A5 /* WebViewViewControllerDelegate.swift in Sources */,
